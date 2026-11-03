@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coupling Design Simulator</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101827;color:#e8edf5;font-family:Arial,sans-serif;padding:22px}
+.container{max-width:1150px;margin:auto}
+h1{margin-bottom:5px;color:#60a5fa}
+.subtitle{color:#aab6c8;margin-bottom:22px}
+.panel{background:#1c293b;border:1px solid #33445c;border-radius:12px;padding:20px;margin-bottom:18px}
+h2{font-size:19px;color:#93c5fd;margin-top:0}
+h4{margin:18px 0 8px;font-size:14px;color:#60a5fa}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:15px}
+label{display:block;font-size:13px;color:#bdc9d9;margin-bottom:7px}
+input,select,textarea{width:100%;padding:11px;background:#101827;border:1px solid #45566f;border-radius:7px;color:white;font-size:15px;font-family:inherit}
+button{padding:11px 18px;background:#2563eb;color:white;border:0;border-radius:7px;cursor:pointer;font-weight:bold;font-family:inherit}
+button:hover{background:#3b82f6}
+button.sec{background:#2a3a52;color:#cbd8ea;border:1px solid #3d5070}
+button.sec:hover{background:#34496a}
+.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}
+.metric{background:#101827;border-radius:9px;padding:15px;border:1px solid #34445c}
+.metric small{color:#9caec4}
+.metric h2{font-size:25px;margin:10px 0 0;color:#60a5fa}
+.status{font-size:20px;font-weight:bold}
+.good{color:#4ade80}
+.bad{color:#fb7185}
+.draws{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+canvas{width:100%;height:auto;background:#101827;border-radius:9px;display:block}
+table{width:100%;border-collapse:collapse}
+td,th{padding:11px;text-align:left;border-bottom:1px solid #33445c}
+th{color:#93c5fd}
+.advice{line-height:1.7;color:#d1dbea}
+.advice p{margin:6px 0}
+.note{color:#9caec4;font-size:12px}
+.footer{color:#8999ad;font-size:12px;text-align:center;margin:25px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;padding:5px;background:#0c1423;border:1px solid #33445c;border-radius:12px;margin-bottom:22px}
+.tabs button{flex:1;min-width:110px;background:transparent;color:#9caec4;padding:11px 12px;font-size:13px}
+.tabs button:hover{color:#fff;background:#1c293b}
+.tabs button.active{background:#2563eb;color:#fff}
+.tabs .num{color:#93c5fd;margin-right:6px;font-size:11px}
+.tabs button.active .num{color:#dbeafe}
+.page{display:none}.page.active{display:block}
+.doc{max-width:900px}
+.doc p,.doc li{color:#c8d5eb;font-size:14px;line-height:1.7}
+.doc ol,.doc ul{margin:0;padding-left:22px}.doc li{margin-bottom:6px}
+.eq{margin:8px 0;padding:9px 12px;background:#101827;border:1px solid #34445c;border-radius:8px;font-family:Consolas,monospace;font-size:13px;color:#dbe6f8}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.toast{font-size:12px;min-height:16px;margin-top:8px}
+.tscroll{overflow-x:auto}
+.rtable th{white-space:nowrap;font-size:12px}.rtable td{font-size:13px;white-space:nowrap}
+.rtable td.empty{text-align:center;color:#9caec4;padding:28px;white-space:normal}
+@media(max-width:700px){.draws{grid-template-columns:1fr}}
+@media(max-width:600px){body{padding:10px}.panel{padding:14px}.tabs button{min-width:46%}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>⚙ Coupling Design Simulator</h1>
+<div class="subtitle">Interactive Mechanical Engineering Design and Analysis Tool</div>
+
+<nav class="tabs" id="tabs">
+<button class="active" data-page="aim"><span class="num">01</span>Aim &amp; Procedure</button>
+<button data-page="theory"><span class="num">02</span>Theory</button>
+<button data-page="lab"><span class="num">03</span>Lab</button>
+<button data-page="results"><span class="num">04</span>Results</button>
+<button data-page="conclusion"><span class="num">05</span>Conclusion</button>
+</nav>
+
+<!-- ================= 01 AIM & PROCEDURE ================= -->
+<div class="page doc active" id="page-aim">
+<div class="panel"><h2>Aim</h2>
+<p>To design a rigid flange coupling and a flexible pin-bush coupling for a given power, speed and service condition, and to determine the shaft diameter, key size, hub and flange proportions and bolt (pin) diameter, and to check the resulting stresses and shaft misalignment.</p>
+</div>
+<div class="panel"><h2>Apparatus</h2>
+<ul><li>Coupling Design Simulator (virtual, SI units)</li><li>Scaled side view and end view of the designed coupling</li><li>Observation table in the Results section</li></ul>
+</div>
+<div class="panel"><h2>Procedure</h2>
+<ol>
+<li>Read the <b>Theory</b> section to understand the design equations and assumptions.</li>
+<li>Open the <b>Lab</b> section and select the coupling type (rigid or flexible).</li>
+<li>Enter the transmitted power, shaft speed and service factor.</li>
+<li>Enter the allowable shaft shear stress, bolt shear stress and bearing stress, the number of bolts and the pitch-circle ratio.</li>
+<li>Enter the angular and parallel misalignment of the shafts.</li>
+<li>Observe the design torque, shaft diameter, key size and bolt diameter, and study the scaled drawings.</li>
+<li>Read the detailed calculation table and the safety analysis.</li>
+<li>Click <b>Record reading</b> to save the observation in the Results table.</li>
+<li>Change one parameter at a time (for example power, speed or number of bolts) and record at least 5 readings.</li>
+<li>Open the <b>Results</b> section to study the table, and note your observations in the <b>Conclusion</b> section.</li>
+</ol>
+<div class="actions"><button data-go="lab">Start the lab ↗</button></div>
+</div>
+</div>
+
+<!-- ================= 02 THEORY ================= -->
+<div class="page doc" id="page-theory">
+<div class="panel"><h2>Theory</h2>
+<p>A shaft coupling joins two shafts to transmit torque. A rigid flange coupling needs well-aligned shafts. A flexible pin-bush coupling tolerates small misalignment through its rubber bushes.</p>
+<h4>Torque</h4>
+<div class="eq">T = 9550 × P / N   (T in N·m, P in kW, N in rpm)</div>
+<div class="eq">T<sub>design</sub> = T × Service factor</div>
+<h4>Shaft diameter (torsion)</h4>
+<div class="eq">d = ∛( 16 T<sub>design</sub> / (π τ) )</div>
+<p>The calculated diameter is rounded up to the next standard shaft size.</p>
+<h4>Key (parallel key)</h4>
+<div class="eq">Shear: L = 2T / (d · b · τ<sub>key</sub>),  τ<sub>key</sub> = 0.75 τ (assumed)</div>
+<div class="eq">Bearing: L = 4T / (d · h · σ<sub>b</sub>)</div>
+<p>The key section b × h is taken from the standard parallel-key table for the selected shaft diameter. The required key length is the larger of the two values and must not exceed the hub length.</p>
+<h4>Coupling proportions (assumed)</h4>
+<div class="eq">Hub outer diameter = 2d,  Hub length = 1.5d,  Flange thickness = 0.5d</div>
+<div class="eq">Bolt pitch-circle diameter PCD = ratio × d</div>
+<h4>Bolts / pins (single shear)</h4>
+<div class="eq">T = n · (π/4) d<sub>b</sub>² · τ<sub>b</sub> · (PCD / 2)</div>
+<div class="eq">d<sub>b</sub> = √( 8T / (n π τ<sub>b</sub> PCD) )  → next standard size</div>
+<h4>Bearing of bolt on flange</h4>
+<div class="eq">σ = 2T / (n · d<sub>b</sub> · t<sub>f</sub> · PCD)</div>
+<h4>Assumptions</h4>
+<ul>
+<li>Static, uniform torque, with the service factor covering shock and overload</li>
+<li>Load shared equally by all bolts (pins)</li>
+<li>The flexible pin-bush coupling is treated with the same shear model as the rigid coupling (simplified)</li>
+<li>Misalignment limits are illustrative screening values, not manufacturer limits</li>
+<li>Preliminary design only; detailed hub, flange, fatigue and bush checks are required before manufacture</li>
+</ul>
+</div>
+</div>
+
+<!-- ================= 03 LAB ================= -->
+<div class="page" id="page-lab">
+
+<div class="panel">
+<h2>1. Coupling Selection</h2>
+<div class="grid">
+<div><label>Coupling Type</label>
+<select id="type" onchange="calculate()">
+<option value="rigid">Rigid Flange Coupling</option>
+<option value="flexible">Flexible Pin-Bush Coupling</option>
+</select></div>
+<div><label>Transmitted Power (kW)</label><input id="power" type="number" value="15" min="0.1" oninput="calculate()"></div>
+<div><label>Shaft Speed (RPM)</label><input id="rpm" type="number" value="1000" min="1" oninput="calculate()"></div>
+<div><label>Service Factor</label><input id="sf" type="number" value="1.5" min="0.1" step="0.1" oninput="calculate()"></div>
+</div>
+</div>
+
+<div class="panel">
+<h2>2. Material and Design Parameters</h2>
+<div class="grid">
+<div><label>Allowable Shaft Shear Stress (MPa)</label><input id="tau" type="number" value="40" min="1" oninput="calculate()"></div>
+<div><label>Allowable Bolt Shear Stress (MPa)</label><input id="boltStress" type="number" value="60" min="1" oninput="calculate()"></div>
+<div><label>Allowable Bearing Stress (MPa)</label><input id="bearing" type="number" value="80" min="1" oninput="calculate()"></div>
+<div><label>Number of Bolts</label>
+<select id="bolts" onchange="calculate()"><option>4</option><option>6</option><option>8</option><option>10</option></select></div>
+<div><label>Bolt Pitch Circle / Shaft Diameter</label><input id="pcdRatio" type="number" value="3" min="1" step="0.1" oninput="calculate()"></div>
+</div>
+</div>
+
+<div class="panel">
+<h2>3. Shaft Misalignment</h2>
+<div class="grid">
+<div><label>Angular Misalignment (Degrees)</label><input id="angle" type="number" value="0.3" min="0" step="0.05" oninput="calculate()"></div>
+<div><label>Parallel Misalignment (mm)</label><input id="offset" type="number" value="0.2" min="0" step="0.05" oninput="calculate()"></div>
+</div>
+<p class="note">Illustrative screening limits: Rigid: 0.1° and 0.05 mm. Flexible: 1° and 0.5 mm. Actual permissible values depend on the manufacturer's specifications.</p>
+</div>
+
+<div class="panel">
+<h2>4. Design Performance</h2>
+<div class="results">
+<div class="metric"><small>Input Torque</small><h2 id="inputTorque">--</h2><small>N·m</small></div>
+<div class="metric"><small>Design Torque</small><h2 id="torque">--</h2><small>N·m</small></div>
+<div class="metric"><small>Shaft Diameter (standard)</small><h2 id="shaft">--</h2><small>mm</small></div>
+<div class="metric"><small>Bolt Diameter (standard)</small><h2 id="bolt">--</h2><small>mm</small></div>
+</div>
+<div class="actions"><button id="record">Record reading</button><span class="note">Saves this design to the Results table.</span></div>
+<div class="toast" id="toast"></div>
+</div>
+
+<div class="panel">
+<h2>5. Coupling Geometry Visualization</h2>
+<div class="draws">
+<canvas id="drawing" width="900" height="340"></canvas>
+<canvas id="endview" width="420" height="340"></canvas>
+</div>
+<p class="note">Side view (left) and end view of the flange (right), drawn to scale from the calculated dimensions. The key is shown in yellow.</p>
+</div>
+
+<div class="panel">
+<h2>6. Detailed Design Calculations</h2>
+<div class="tscroll"><table><thead><tr><th>Parameter</th><th>Calculated Value</th></tr></thead><tbody id="table"></tbody></table></div>
+</div>
+
+<div class="panel">
+<h2>7. Safety Analysis</h2>
+<div class="results">
+<div class="metric"><small>Shaft Torque Capacity</small><h2 id="shaftCap">--</h2><small>N·m</small></div>
+<div class="metric"><small>Bolt Torque Capacity</small><h2 id="boltCap">--</h2><small>N·m</small></div>
+<div class="metric"><small>Overall Design Status</small><h2 id="status" class="status">--</h2></div>
+</div>
+<div id="checks" class="advice"></div>
+</div>
+
+<div class="panel">
+<h2>8. Engineering Advisor (rule-based)</h2>
+<div id="advice" class="advice"></div>
+</div>
+</div>
+
+<!-- ================= 04 RESULTS ================= -->
+<div class="page doc" id="page-results">
+<div class="panel"><h2>Observation Table <span class="note" id="rcount" style="margin-left:8px">0 readings</span></h2>
+<div class="tscroll"><table class="rtable"><thead><tr>
+<th>S.No</th><th>Type</th><th>P (kW)</th><th>N (rpm)</th><th>SF</th><th>T design (N·m)</th><th>Shaft d (mm)</th><th>Key b×h×L (mm)</th><th>Bolts n × d<sub>b</sub> (mm)</th><th>Status</th>
+</tr></thead><tbody id="rbody"></tbody></table></div>
+<div class="actions"><button class="sec" id="csv">Download CSV</button><button class="sec" id="clearR">Clear table</button><button data-go="lab">Back to lab ↗</button></div>
+</div>
+<div class="panel"><h2>What to look for</h2>
+<ul>
+<li>Increase the power at constant speed: how does the design torque and shaft diameter change?</li>
+<li>Increase the speed at constant power: what happens to the torque?</li>
+<li>Change the number of bolts: how does the required bolt diameter change?</li>
+<li>Compare the rigid and flexible coupling for the same misalignment.</li>
+</ul>
+</div>
+</div>
+
+<!-- ================= 05 CONCLUSION ================= -->
+<div class="page doc" id="page-conclusion">
+<div class="panel"><h2>Conclusion</h2>
+<ul>
+<li>The design torque follows T = 9550 P / N, so it rises with power and falls with speed.</li>
+<li>The shaft diameter varies with the cube root of the design torque, then rounds up to a standard size.</li>
+<li>A larger number of bolts, or a larger pitch circle, reduces the bolt diameter needed for the same torque.</li>
+<li>A rigid flange coupling allows very little misalignment, while a flexible pin-bush coupling tolerates more.</li>
+<li>The results are preliminary and valid only under the stated assumptions.</li>
+</ul>
+<h4>Your observations</h4>
+<textarea id="notes" rows="5" placeholder="Write your own observations here..."></textarea>
+</div>
+</div>
+
+<div class="footer">Educational engineering simulator | Preliminary design only</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const num = id => Number($(id).value);
+
+const SHAFTS=[10,11,12,14,16,18,19,20,22,24,25,28,30,32,35,38,40,42,45,48,50,55,60,65,70,75,80,85,90,95,100,110,120,130,140,150,160,180,200,220,250,280,300];
+const BOLTS=[4,5,6,8,10,12,14,16,18,20,22,24,27,30,33,36,42,48,56,64];
+// Parallel key sections: [shaft diameter up to (mm), width b, height h]
+const KEYS=[[8,2,2],[10,3,3],[12,4,4],[17,5,5],[22,6,6],[30,8,7],[38,10,8],[44,12,8],[50,14,9],[58,16,10],[65,18,11],[75,20,12],[85,22,14],[95,25,14],[110,28,16],[130,32,18],[150,36,20],[170,40,22],[200,45,25],[230,50,28],[260,56,32],[290,63,32],[330,70,36]];
+
+function stdSize(list,v){
+ const s=list.find(x=>x>=v-1e-9);
+ return s!==undefined?s:Math.ceil(v/10)*10;
+}
+function keySection(d){
+ const k=KEYS.find(x=>d<=x[0]);
+ return k?[k[1],k[2]]:[d/4,d/6];
+}
+let last=null;
+
+function invalid(){
+ last=null;
+ ["inputTorque","torque","shaft","bolt","shaftCap","boltCap"].forEach(i=>$(i).textContent="--");
+ $("status").textContent="INVALID INPUT";
+ $("status").className="status bad";
+ $("table").innerHTML="";$("checks").innerHTML="";
+ $("advice").innerHTML="<p>• Enter positive values in all fields.</p>";
+}
+
+function calculate(){
+ const P=num("power"),N=num("rpm"),SF=num("sf"),tau=num("tau");
+ const boltStress=num("boltStress"),bearing=num("bearing");
+ const nb=num("bolts"),ratio=num("pcdRatio");
+ const angle=num("angle"),offset=num("offset");
+ const type=$("type").value;
+
+ if(![P,N,SF,tau,boltStress,bearing,ratio,angle,offset].every(Number.isFinite) ||
+ P<=0||N<=0||SF<=0||tau<=0||boltStress<=0||bearing<=0||ratio<=0||angle<0||offset<0){
+ invalid();return;
+ }
+
+ // Torque
+ const Tin=9550*P/N;            // N·m
+ const T=Tin*SF*1000;           // design torque, N·mm
+
+ // Shaft (rounded up to a standard size)
+ const dCalc=Math.cbrt(16*T/(Math.PI*tau));
+ const d=stdSize(SHAFTS,dCalc);
+
+ // Key (standard section for the selected shaft)
+ const [b,h]=keySection(d);
+ const keyShear=2*T/(d*b*(0.75*tau));
+ const keyBearing=4*T/(d*h*bearing);
+ const keyLength=Math.max(keyShear,keyBearing);
+
+ // Coupling proportions
+ const hubOD=2*d, hubLength=1.5*d, flangeThickness=0.5*d;
+ const pcd=ratio*d;
+
+ // Bolts (single shear), standard size
+ const db=Math.sqrt(8*T/(nb*Math.PI*boltStress*pcd));
+ const dbSel=stdSize(BOLTS,db);
+ const flangeOD=pcd+Math.max(d,3*dbSel);
+
+ // Capacities and actual stresses
+ const shaftCapacity=Math.PI/16*tau*d**3/1000;                     // N·m
+ const boltCapacity=nb*Math.PI/4*dbSel**2*boltStress*pcd/2/1000;   // N·m
+ const shaftStress=16*T/(Math.PI*d**3);
+ const boltStressAct=8*T/(nb*Math.PI*dbSel**2*pcd);
+ const boltBearing=2*T/(nb*dbSel*flangeThickness*pcd);
+
+ // Misalignment screening
+ const angleLimit=type==="rigid"?0.1:1.0;
+ const offsetLimit=type==="rigid"?0.05:0.5;
+
+ const shaftOK=shaftStress<=tau*1.000001;
+ const boltOK=boltStressAct<=boltStress*1.000001;
+ const bearOK=boltBearing<=bearing;
+ const keyOK=keyLength<=hubLength;
+ const angleOK=angle<=angleLimit;
+ const offsetOK=offset<=offsetLimit;
+
+ const checks=[
+ ["Shaft shear stress",shaftOK,shaftStress.toFixed(2)+" MPa (allowable "+tau+")"],
+ ["Bolt shear stress",boltOK,boltStressAct.toFixed(2)+" MPa (allowable "+boltStress+")"],
+ ["Bolt bearing stress",bearOK,boltBearing.toFixed(2)+" MPa (allowable "+bearing+")"],
+ ["Key length vs hub length",keyOK,keyLength.toFixed(2)+" mm (hub "+hubLength.toFixed(2)+" mm)"],
+ ["Angular alignment",angleOK,angle+"° (limit "+angleLimit+"°)"],
+ ["Parallel alignment",offsetOK,offset+" mm (limit "+offsetLimit+" mm)"]
+ ];
+ const safe=checks.every(x=>x[1]);
+
+ // Metrics
+ $("inputTorque").textContent=Tin.toFixed(2);
+ $("torque").textContent=(T/1000).toFixed(2);
+ $("shaft").textContent=d;
+ $("bolt").textContent=dbSel;
+ $("shaftCap").textContent=shaftCapacity.toFixed(2);
+ $("boltCap").textContent=boltCapacity.toFixed(2);
+ $("status").textContent=safe?"PASS":"REVIEW";
+ $("status").className="status "+(safe?"good":"bad");
+
+ const rows=[
+ ["Design torque",T.toFixed(2)+" N·mm"],
+ ["Calculated shaft diameter",dCalc.toFixed(2)+" mm"],
+ ["Selected standard shaft diameter",d+" mm"],
+ ["Key section (b × h)",b+" × "+h+" mm"],
+ ["Key length from shear",keyShear.toFixed(2)+" mm"],
+ ["Key length from bearing",keyBearing.toFixed(2)+" mm"],
+ ["Required key length",keyLength.toFixed(2)+" mm"],
+ ["Hub outer diameter",hubOD.toFixed(2)+" mm"],
+ ["Hub length",hubLength.toFixed(2)+" mm"],
+ ["Flange thickness",flangeThickness.toFixed(2)+" mm"],
+ ["Flange outer diameter",flangeOD.toFixed(2)+" mm"],
+ ["Bolt pitch circle diameter",pcd.toFixed(2)+" mm"],
+ ["Calculated bolt diameter",db.toFixed(2)+" mm"],
+ ["Selected standard bolt diameter",dbSel+" mm"],
+ ["Shaft shear stress",shaftStress.toFixed(2)+" MPa"],
+ ["Bolt shear stress",boltStressAct.toFixed(2)+" MPa"],
+ ["Bolt bearing stress",boltBearing.toFixed(2)+" MPa"],
+ ["Shaft torque capacity",shaftCapacity.toFixed(2)+" N·m"],
+ ["Bolt torque capacity",boltCapacity.toFixed(2)+" N·m"]
+ ];
+ $("table").innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("");
+ $("checks").innerHTML=checks.map(c=>`<p class="${c[1]?"good":"bad"}">${c[1]?"✓":"✗"} ${c[0]}: ${c[2]}</p>`).join("");
+
+ // Advice
+ const advice=[];
+ if(!shaftOK) advice.push("Increase shaft diameter or select a stronger shaft material.");
+ if(!boltOK) advice.push("Increase bolt diameter, bolt count or pitch-circle diameter.");
+ if(!bearOK) advice.push("Bolt bearing stress is high: increase flange thickness or bolt diameter.");
+ if(!angleOK) advice.push("Angular misalignment exceeds the selected screening limit.");
+ if(!offsetOK) advice.push("Parallel misalignment exceeds the selected screening limit.");
+ if(!keyOK) advice.push("Required key length exceeds the hub length: lengthen the hub or review the key.");
+ if(safe) advice.push("Preliminary shaft, bolt, bearing, key-length and alignment checks pass.");
+ advice.push(type==="flexible"
+ ?"Check elastomer bush stiffness, pin bending, fatigue life and manufacturer torque ratings."
+ :"Check flange stresses, shaft alignment and foundation rigidity.");
+ advice.push("Perform detailed hub, key, flange and fatigue verification before manufacturing.");
+ $("advice").innerHTML=advice.map(x=>"<p>• "+x+"</p>").join("");
+
+ last={type,P,N,SF,Td:T/1000,dCalc,d,b,h,keyLength,nb,dbSel,safe};
+ drawCoupling({d,hubOD,hubLen:hubLength,tf:flangeThickness,pcd,flangeOD,db:dbSel,nb,type,keyH:h,keyL:keyLength});
+ drawEnd({d,hubOD,pcd,flangeOD,db:dbSel,nb,keyB:b,keyH:h});
+}
+
+function drawCoupling(g){
+ const {d,hubOD,hubLen,tf,pcd,flangeOD,db,nb,type,keyH,keyL}=g;
+ const c=$("drawing"),x=c.getContext("2d");
+ const W=c.width,H=c.height;
+ x.clearRect(0,0,W,H);
+ const gap=type==="flexible"?0.2*d:0;
+ const stub=1.2*d;
+ const total=2*(stub+hubLen+tf)+gap;
+ const s=Math.min((W-40)/total,(H-120)/flangeOD);
+ const cy=H/2+4;
+ const x0=(W-total*s)/2;
+ const sh=d*s;
+
+ const xHubL=x0+stub*s, xFlL=xHubL+hubLen*s, xFlR=xFlL+tf*s+gap*s;
+ const xHubR=xFlR+tf*s, xEnd=xHubR+hubLen*s+stub*s;
+
+ // shafts
+ x.fillStyle="#94a3b8";
+ x.fillRect(x0,cy-sh/2,xFlL-x0,sh);
+ x.fillRect(xFlR+tf*s*0,cy-sh/2,xEnd-xFlR,sh);
+
+ // hubs
+ x.fillStyle="#64748b";
+ x.fillRect(xHubL,cy-hubOD*s/2,hubLen*s,hubOD*s);
+ x.fillRect(xHubR,cy-hubOD*s/2,hubLen*s,hubOD*s);
+ x.strokeStyle="#101827";x.lineWidth=1;
+ x.strokeRect(xHubL,cy-hubOD*s/2,hubLen*s,hubOD*s);
+ x.strokeRect(xHubR,cy-hubOD*s/2,hubLen*s,hubOD*s);
+
+ // flanges
+ x.fillStyle="#7d8fa8";
+ x.fillRect(xFlL,cy-flangeOD*s/2,tf*s,flangeOD*s);
+ x.fillRect(xFlR,cy-flangeOD*s/2,tf*s,flangeOD*s);
+ x.strokeRect(xFlL,cy-flangeOD*s/2,tf*s,flangeOD*s);
+ x.strokeRect(xFlR,cy-flangeOD*s/2,tf*s,flangeOD*s);
+
+ // keys (yellow), sitting on top of the shaft inside each hub
+ const kl=Math.min(keyL,hubLen)*s, kh=Math.max(keyH*s,3);
+ x.fillStyle="#fbbf24";
+ x.fillRect(xFlL-kl,cy-sh/2-kh/2,kl,kh);
+ x.fillRect(xFlR+tf*s,cy-sh/2-kh/2,kl,kh);
+
+ // bolts / pins at +/- PCD/2
+ const bw=Math.max(db*s,4);
+ [-1,1].forEach(sg=>{
+ const by=cy+sg*pcd*s/2;
+ const bx0=xFlL, bx1=xFlR+tf*s;
+ if(type==="flexible"){
+  x.fillStyle="#f59e0b";            // rubber bush in the right flange
+  x.fillRect(xFlR,by-bw*0.95,tf*s,bw*1.9);
+  x.fillStyle="#e2e8f0";            // pin
+  x.fillRect(bx0-bw*0.4,by-bw/2,bx1-bx0-tf*s*0.1,bw);
+  x.fillRect(bx0-bw*0.7,by-bw*0.8,bw*0.7,bw*1.6);
+ }else{
+  x.fillStyle="#e2e8f0";
+  x.fillRect(bx0-bw*0.6,by-bw/2,bx1-bx0+bw*1.2,bw);        // bolt shank
+  x.fillRect(bx0-bw*0.6-bw*0.7,by-bw*0.85,bw*0.7,bw*1.7);  // head
+  x.fillRect(bx1+bw*0.6,by-bw*0.85,bw*0.7,bw*1.7);         // nut
+ }
+ });
+
+ // centre line
+ x.strokeStyle="#60a5fa";x.lineWidth=1.5;x.setLineDash([8,6]);
+ x.beginPath();x.moveTo(x0-10,cy);x.lineTo(xEnd+10,cy);x.stroke();
+ x.setLineDash([]);
+
+ // labels
+ x.fillStyle="#e2e8f0";x.textAlign="center";
+ x.font="bold 17px Arial";
+ x.fillText(type==="rigid"?"RIGID FLANGE COUPLING":"FLEXIBLE PIN-BUSH COUPLING",W/2,26);
+ x.font="13px Arial";
+ const ly=cy+flangeOD*s/2+22;
+ x.fillText("Shaft 1",x0+stub*s/2,cy-sh/2-12);
+ x.fillText("Shaft 2",xEnd-stub*s/2,cy-sh/2-12);
+ x.fillText("Hub",xHubL+hubLen*s/2,ly);
+ x.fillText("Hub",xHubR+hubLen*s/2,ly);
+ x.fillText("Flange",(xFlL+xFlR+tf*s)/2,ly);
+ x.fillStyle="#9caec4";x.font="12px Arial";
+ x.fillText(`Shaft Ø${d}  |  Hub Ø${hubOD.toFixed(0)} × ${hubLen.toFixed(0)}  |  Flange Ø${flangeOD.toFixed(0)} × ${tf.toFixed(0)}  |  PCD Ø${pcd.toFixed(0)}  |  ${nb} × Ø${db} ${type==="rigid"?"bolts":"pins"}`,W/2,H-12);
+}
+
+function drawEnd(g){
+ const {d,hubOD,pcd,flangeOD,db,nb,keyB,keyH}=g;
+ const c=$("endview"),x=c.getContext("2d");
+ const W=c.width,H=c.height;
+ x.clearRect(0,0,W,H);
+ const s=Math.min((W-50)/flangeOD,(H-100)/flangeOD);
+ const cx=W/2,cy=H/2+4;
+ const circle=(r,fill,stroke,dash)=>{
+  x.beginPath();x.arc(cx,cy,r,0,2*Math.PI);
+  if(fill){x.fillStyle=fill;x.fill()}
+  if(stroke){x.strokeStyle=stroke;x.lineWidth=1.5;x.setLineDash(dash||[]);x.stroke();x.setLineDash([])}
+ };
+ circle(flangeOD*s/2,"#7d8fa8","#101827");
+ circle(hubOD*s/2,null,"#101827",[5,4]);
+ circle(pcd*s/2,null,"#60a5fa",[6,5]);
+ circle(d*s/2,"#94a3b8","#101827");
+ // keyway
+ x.fillStyle="#fbbf24";
+ x.fillRect(cx-keyB*s/2,cy-d*s/2-keyH*s/2,keyB*s,keyH*s);
+ // bolts
+ const br=Math.max(db*s/2,3);
+ for(let i=0;i<nb;i++){
+  const a=2*Math.PI*i/nb-Math.PI/2;
+  x.beginPath();x.arc(cx+pcd*s/2*Math.cos(a),cy+pcd*s/2*Math.sin(a),br,0,2*Math.PI);
+  x.fillStyle="#e2e8f0";x.fill();x.strokeStyle="#101827";x.lineWidth=1;x.stroke();
+ }
+ x.fillStyle="#e2e8f0";x.textAlign="center";x.font="bold 17px Arial";
+ x.fillText("END VIEW",W/2,26);
+ x.fillStyle="#9caec4";x.font="12px Arial";
+ x.fillText(`${nb} holes on PCD Ø${pcd.toFixed(0)} mm`,W/2,H-12);
+}
+
+/* ---------- page navigation ---------- */
+function showPage(p){
+ document.querySelectorAll(".page").forEach(e=>e.classList.toggle("active",e.id==="page-"+p));
+ document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll("#tabs button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.go)));
+
+/* ---------- results table ---------- */
+const readings=[];
+function renderResults(){
+ $("rcount").textContent=readings.length+(readings.length===1?" reading":" readings");
+ $("rbody").innerHTML=readings.length?readings.map((r,i)=>`<tr><td>${i+1}</td><td>${r.type==="rigid"?"Rigid flange":"Flexible pin-bush"}</td><td>${r.P}</td><td>${r.N}</td><td>${r.SF}</td><td>${r.Td.toFixed(2)}</td><td>${r.d}</td><td>${r.b}×${r.h}×${r.keyLength.toFixed(1)}</td><td>${r.nb} × ${r.dbSel}</td><td class="${r.safe?"good":"bad"}">${r.safe?"PASS":"REVIEW"}</td></tr>`).join(""):'<tr><td class="empty" colspan="10">No readings yet. Go to the Lab and click “Record reading”.</td></tr>';
+}
+$("record").addEventListener("click",()=>{
+ const t=$("toast");
+ if(!last){t.style.color="#fb7185";t.textContent="Fix the input errors before recording a reading.";return}
+ readings.push({...last});renderResults();
+ t.style.color="#4ade80";t.textContent="Reading "+readings.length+" recorded. See the Results section.";
+ clearTimeout(window._t);window._t=setTimeout(()=>t.textContent="",3000);
+});
+$("clearR").addEventListener("click",()=>{readings.length=0;renderResults()});
+$("csv").addEventListener("click",()=>{
+ if(!readings.length)return;
+ const head="S.No,Type,P (kW),N (rpm),SF,T design (N.m),Shaft d (mm),Key b,Key h,Key L (mm),Bolts n,Bolt d (mm),Status";
+ const rows=readings.map((r,i)=>[i+1,r.type,r.P,r.N,r.SF,r.Td.toFixed(3),r.d,r.b,r.h,r.keyLength.toFixed(2),r.nb,r.dbSel,r.safe?"PASS":"REVIEW"].join(","));
+ const a=document.createElement("a");
+ a.href=URL.createObjectURL(new Blob([head+"\n"+rows.join("\n")],{type:"text/csv"}));
+ a.download="coupling_readings.csv";a.click();
+});
+
+renderResults();
+calculate();
+</script>
+</body>
+</html>
